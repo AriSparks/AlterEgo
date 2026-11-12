@@ -9,12 +9,12 @@ AlterEgo is a native SwiftUI app for iOS and macOS that helps plural systems tra
   - **Fully fronting** — one alter takes over and everyone else's session ends.
   - **Partially fronting** — an alter fronts alongside whoever is already fronting.
 - **Session editing** — adjust session start and end times, notes, and fronting mode, or remove a session entirely.
-- **Timeline** — a day-by-day history of sessions, with an interactive per-day view, a time scrubber, and a live "now" indicator.
-- **Home-screen widget** — small, medium, and large widgets show who is currently fronting, their avatar, the current fronting count, and the active theme.
+- **Timeline** — Day, Week, Month, and 6 Months views. Hold and drag across day and week charts to inspect any moment, or use the Month and 6 Months heatmaps to review longer-term fronting patterns. Selected times show who was fronting, while each day lists every alter with full and partial fronting totals.
+- **Home-screen widget** — small, medium, and large widgets show who is currently fronting, with timeline previews on medium and large sizes. Widget colors follow the app palette.
 - **Appearance** — light, dark, system, or scheduled Daytime mode; accent colors; custom light and dark palettes with solid or gradient fills; optional partial-fronting stripes; 24-hour time and week-start preferences.
 - **Backup and restore** — export all alters and sessions, including images, to a JSON backup and import it with merge or replace options.
 - **Optional iCloud sync** — key-value sync for text data, compiled out by default for free-account builds.
-- **App Intents** — "Front Alongside", "Take Over", and "Stop Fronting" actions are available from the widget and system automation.
+- **App Intents** — "Front Alongside", "Take Over", and "Stop Fronting" actions are available to system automation.
 - **Shared state** — data is persisted to a shared App Group so the app and widget can stay in sync.
 
 ## Requirements

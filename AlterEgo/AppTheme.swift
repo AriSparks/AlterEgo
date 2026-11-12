@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import WidgetKit
 
 #if os(macOS)
 import AppKit
@@ -151,6 +152,42 @@ struct ThemeSettings: Codable {
     static let `default` = ThemeSettings()
 }
 
+private extension SharedFill {
+    init(_ fill: FillSpec) {
+        self.init(
+            kind: fill.kind == .gradient ? .gradient : .solid,
+            solidHex: fill.solidHex,
+            stops: fill.stops.map { SharedGradientStop(hex: $0.hex, location: $0.location) },
+            angle: fill.angle
+        )
+    }
+}
+
+private extension SharedPalette {
+    init(_ palette: PaletteSettings) {
+        self.init(
+            background: SharedFill(palette.background),
+            surface: SharedFill(palette.surface),
+            accent: SharedFill(palette.accent),
+            primaryText: SharedFill(palette.primaryText),
+            secondaryText: SharedFill(palette.secondaryText)
+        )
+    }
+}
+
+private extension SharedThemeSnapshot {
+    init(_ settings: ThemeSettings) {
+        self.init(
+            appearanceMode: settings.appearanceMode.rawValue,
+            daytimeLightMinutes: settings.daytimeLightMinutes,
+            daytimeDarkMinutes: settings.daytimeDarkMinutes,
+            light: SharedPalette(settings.light),
+            dark: SharedPalette(settings.dark),
+            showPartialStripes: !settings.hidePartialStripes
+        )
+    }
+}
+
 enum SettingsStore {
     static var defaults: UserDefaults {
         UserDefaults(suiteName: SharedConstants.appGroupID) ?? .standard
@@ -168,6 +205,9 @@ enum SettingsStore {
         if let data = try? JSONEncoder().encode(settings) {
             defaults.set(data, forKey: SharedConstants.themeSettingsKey)
         }
+        if let data = try? JSONEncoder().encode(SharedThemeSnapshot(settings)) {
+            defaults.set(data, forKey: SharedConstants.themeSnapshotKey)
+        }
         defaults.set(settings.accentHex, forKey: SharedConstants.accentColorKey)
         defaults.set(settings.hidePartialStripes, forKey: SharedConstants.partialStripesKey)
     }
@@ -178,6 +218,7 @@ final class ThemeManager: ObservableObject {
     @Published var settings: ThemeSettings {
         didSet {
             SettingsStore.save(settings)
+            WidgetCenter.shared.reloadAllTimelines()
         }
     }
 

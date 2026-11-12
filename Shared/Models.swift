@@ -7,6 +7,7 @@ enum SharedConstants {
     static let stateNotification = "gay.arisparks.AlterEgo.stateChanged"
 
     static let themeSettingsKey = "alterego.theme.settings"
+    static let themeSnapshotKey = "alterego.theme.snapshot"
     static let accentColorKey = "alterego.theme.accentHex"
     static let partialStripesKey = "alterego.theme.showPartialStripes"
     static let defaultAccentHex = "#6C5CE7"
@@ -159,6 +160,122 @@ struct AppState: Codable {
     }
 }
 
+struct SharedGradientStop: Codable, Hashable {
+    var hex: String
+    var location: Double
+}
+
+struct SharedFill: Codable, Hashable {
+    enum Kind: String, Codable {
+        case solid
+        case gradient
+    }
+
+    var kind: Kind
+    var solidHex: String
+    var stops: [SharedGradientStop]
+    var angle: Double
+
+    static func solid(_ hex: String) -> SharedFill {
+        SharedFill(kind: .solid, solidHex: hex, stops: [], angle: 90)
+    }
+
+    static func gradient(_ hexes: [String], angle: Double = 90) -> SharedFill {
+        let safe = hexes.isEmpty ? [SharedConstants.defaultAccentHex] : hexes
+        let step = safe.count > 1 ? 1 / Double(safe.count - 1) : 0
+        return SharedFill(
+            kind: .gradient,
+            solidHex: safe[0],
+            stops: safe.enumerated().map { index, hex in
+                SharedGradientStop(hex: hex, location: Double(index) * step)
+            },
+            angle: angle
+        )
+    }
+
+    var isGradient: Bool {
+        kind == .gradient && stops.count >= 2
+    }
+
+    var averageHex: String {
+        guard isGradient, !stops.isEmpty else { return solidHex }
+        return stops[stops.count / 2].hex
+    }
+}
+
+struct SharedPalette: Codable, Hashable {
+    var background: SharedFill
+    var surface: SharedFill
+    var accent: SharedFill
+    var primaryText: SharedFill
+    var secondaryText: SharedFill
+
+    static let lightDefault = SharedPalette(
+        background: .solid("#F6F6FA"),
+        surface: .solid("#FFFFFF"),
+        accent: .solid(SharedConstants.defaultAccentHex),
+        primaryText: .solid("#17171C"),
+        secondaryText: .solid("#6A6A75")
+    )
+
+    static let darkDefault = SharedPalette(
+        background: .solid("#0E0E13"),
+        surface: .solid("#1C1C24"),
+        accent: .solid("#8C7CFF"),
+        primaryText: .solid("#F7F7FA"),
+        secondaryText: .solid("#A7A7B2")
+    )
+}
+
+struct SharedThemeSnapshot: Codable, Hashable {
+    var appearanceMode: String
+    var daytimeLightMinutes: Int
+    var daytimeDarkMinutes: Int
+    var light: SharedPalette
+    var dark: SharedPalette
+    var showPartialStripes: Bool
+
+    static let `default` = SharedThemeSnapshot(
+        appearanceMode: "system",
+        daytimeLightMinutes: 7 * 60,
+        daytimeDarkMinutes: 19 * 60,
+        light: .lightDefault,
+        dark: .darkDefault,
+        showPartialStripes: true
+    )
+
+    func isDark(systemIsDark: Bool, at date: Date = Date(), calendar: Calendar = .current) -> Bool {
+        switch appearanceMode {
+        case "light":
+            return false
+        case "dark":
+            return true
+        case "daytime":
+            let components = calendar.dateComponents([.hour, .minute], from: date)
+            let minutes = (components.hour ?? 0) * 60 + (components.minute ?? 0)
+            let light = normalized(daytimeLightMinutes)
+            let dark = normalized(daytimeDarkMinutes)
+            guard light != dark else { return systemIsDark }
+
+            if dark < light {
+                return minutes >= dark && minutes < light
+            } else {
+                return minutes >= dark || minutes < light
+            }
+        default:
+            return systemIsDark
+        }
+    }
+
+    func palette(isDark: Bool) -> SharedPalette {
+        isDark ? dark : light
+    }
+
+    private func normalized(_ minutes: Int) -> Int {
+        ((minutes % 1440) + 1440) % 1440
+    }
+}
+
 enum SharedTheme {
     static var defaults: UserDefaults {
         UserDefaults(suiteName: SharedConstants.appGroupID) ?? .standard
@@ -171,6 +288,14 @@ enum SharedTheme {
     static var showPartialStripes: Bool {
         if defaults.object(forKey: SharedConstants.partialStripesKey) == nil { return true }
         return defaults.bool(forKey: SharedConstants.partialStripesKey)
+    }
+
+    static var snapshot: SharedThemeSnapshot {
+        guard let data = defaults.data(forKey: SharedConstants.themeSnapshotKey),
+              let snapshot = try? JSONDecoder().decode(SharedThemeSnapshot.self, from: data) else {
+            return .default
+        }
+        return snapshot
     }
 }
 
