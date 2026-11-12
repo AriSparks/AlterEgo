@@ -14,7 +14,7 @@ xcuserdata/
 *.xcscmblueprint
 
 # Local release packaging script
-# Build IPA.sh
+# Build Apps.sh
 
 # Backup files
 *.bak

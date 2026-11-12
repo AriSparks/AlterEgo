@@ -2,11 +2,14 @@ import SwiftUI
 
 struct TimelineView: View {
     @EnvironmentObject private var store: AppStore
+    @EnvironmentObject private var theme: ThemeManager
+    @Environment(\.themePalette) private var palette
 
     @State private var now = Date()
+    @State private var isAddingEntry = false
 
     private var days: [TimelineDay] {
-        TimelineBuilder.build(state: store.state, now: now)
+        TimelineBuilder.build(state: store.state, now: now, calendar: theme.timelineCalendar)
     }
 
     var body: some View {
@@ -37,15 +40,20 @@ struct TimelineView: View {
                 .frame(maxWidth: 1020)
                 .frame(maxWidth: .infinity)
             }
-            .background(
-                LinearGradient(
-                    colors: [Color.accentColor.opacity(0.08), Color.clear],
-                    startPoint: .top,
-                    endPoint: .center
-                )
-                .ignoresSafeArea()
-            )
+            .background(ThemedBackground(fill: palette.background))
             .navigationTitle("Timeline")
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        isAddingEntry = true
+                    } label: {
+                        Label("Add Entry", systemImage: "plus")
+                    }
+                }
+            }
+            .sheet(isPresented: $isAddingEntry) {
+                SessionEditorView(session: nil, defaultStart: Date())
+            }
             .task {
                 while !Task.isCancelled {
                     now = Date()
@@ -57,34 +65,33 @@ struct TimelineView: View {
 
     private var legend: some View {
         HStack(spacing: 18) {
-            LegendSwatch(title: "Fully fronting", isPartial: false)
-            LegendSwatch(title: "Partially fronting", isPartial: true)
+            FrontingLegendItem(title: "Fully fronting", mode: .full)
+            FrontingLegendItem(title: "Partially fronting", mode: .partial)
             Spacer()
             Text("Tap a day to explore")
                 .font(.caption)
-                .foregroundStyle(.tertiary)
+                .foregroundStyle(palette.secondaryText.color)
         }
         .font(.caption)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(palette.secondaryText.color)
     }
 }
 
-private struct LegendSwatch: View {
+struct FrontingLegendItem: View {
     let title: String
-    let isPartial: Bool
+    let mode: FrontingMode
+
+    @Environment(\.themePalette) private var palette
 
     var body: some View {
         HStack(spacing: 6) {
-            RoundedRectangle(cornerRadius: 4, style: .continuous)
-                .fill(Color.primary.opacity(isPartial ? 0.35 : 0.75))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 4, style: .continuous)
-                        .strokeBorder(
-                            Color.primary.opacity(0.6),
-                            style: StrokeStyle(lineWidth: 1, dash: isPartial ? [3, 2] : [])
-                        )
-                )
-                .frame(width: 24, height: 10)
+            FrontingBar(
+                color: palette.accent.color,
+                mode: mode,
+                cornerRadius: 4,
+                showStripes: mode == .partial
+            )
+            .frame(width: 26, height: 11)
             Text(title)
         }
     }
@@ -115,10 +122,13 @@ struct TimelineSegment: Identifiable {
 }
 
 enum TimelineBuilder {
-    static func build(state: AppState, now: Date) -> [TimelineDay] {
+    static func build(
+        state: AppState,
+        now: Date,
+        calendar: Calendar = .current
+    ) -> [TimelineDay] {
         guard !state.sessions.isEmpty else { return [] }
 
-        let calendar = Calendar.current
         let earliest = state.sessions.map(\.start).min() ?? now
         var day = calendar.startOfDay(for: now)
         let firstDay = calendar.startOfDay(for: earliest)
@@ -127,7 +137,7 @@ enum TimelineBuilder {
         var dayCount = 0
 
         while day >= firstDay && dayCount < 366 {
-            if let timelineDay = buildDay(day, state: state, now: now) {
+            if let timelineDay = buildDay(day, state: state, now: now, calendar: calendar) {
                 days.append(timelineDay)
             }
 
@@ -139,8 +149,12 @@ enum TimelineBuilder {
         return days
     }
 
-    static func buildDay(_ day: Date, state: AppState, now: Date) -> TimelineDay? {
-        let calendar = Calendar.current
+    static func buildDay(
+        _ day: Date,
+        state: AppState,
+        now: Date,
+        calendar: Calendar = .current
+    ) -> TimelineDay? {
         let dayStart = calendar.startOfDay(for: day)
         guard let dayEnd = calendar.date(byAdding: .day, value: 1, to: dayStart) else { return nil }
 
@@ -181,6 +195,9 @@ private struct TimelineDayCard: View {
     let day: TimelineDay
     let now: Date
 
+    @EnvironmentObject private var theme: ThemeManager
+    @Environment(\.themePalette) private var palette
+
     private let labelWidth: CGFloat = 118
 
     var body: some View {
@@ -188,13 +205,14 @@ private struct TimelineDayCard: View {
             HStack(alignment: .firstTextBaseline) {
                 Text(title)
                     .font(.headline)
+                    .foregroundStyle(palette.primaryText.color)
                 Spacer()
                 Text(day.date, format: .dateTime.month(.abbreviated).day().year())
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(palette.secondaryText.color)
                 Image(systemName: "chevron.right")
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(.tertiary)
+                    .foregroundStyle(palette.secondaryText.color.opacity(0.6))
             }
 
             HStack(spacing: 10) {
@@ -202,18 +220,18 @@ private struct TimelineDayCard: View {
                     .frame(width: labelWidth, height: 1)
 
                 HStack {
-                    Text("12a")
+                    Text(theme.hourLabel(0))
                     Spacer()
-                    Text("6a")
+                    Text(theme.hourLabel(6))
                     Spacer()
-                    Text("12p")
+                    Text(theme.hourLabel(12))
                     Spacer()
-                    Text("6p")
+                    Text(theme.hourLabel(18))
                     Spacer()
-                    Text("12a")
+                    Text(theme.hourLabel(24))
                 }
                 .font(.caption2)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(palette.secondaryText.color)
             }
 
             VStack(spacing: 9) {
@@ -223,10 +241,10 @@ private struct TimelineDayCard: View {
             }
         }
         .padding(18)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .background(ThemedCardBackground(fill: palette.surface, cornerRadius: 22))
         .overlay(
             RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .strokeBorder(Color.primary.opacity(0.07), lineWidth: 1)
+                .strokeBorder(palette.primaryText.color.opacity(0.07), lineWidth: 1)
         )
         .contentShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
         .accessibilityHint("Opens the interactive timeline for this day")
@@ -246,6 +264,9 @@ private struct TimelineRowView: View {
     let now: Date
     let labelWidth: CGFloat
 
+    @EnvironmentObject private var theme: ThemeManager
+    @Environment(\.themePalette) private var palette
+
     var body: some View {
         HStack(spacing: 10) {
             HStack(spacing: 8) {
@@ -253,6 +274,7 @@ private struct TimelineRowView: View {
                 Text(row.alter.name)
                     .font(.subheadline.weight(.medium))
                     .lineLimit(1)
+                    .foregroundStyle(palette.primaryText.color)
             }
             .frame(width: labelWidth, alignment: .leading)
 
@@ -261,11 +283,11 @@ private struct TimelineRowView: View {
 
                 ZStack(alignment: .leading) {
                     Capsule()
-                        .fill(Color.primary.opacity(0.06))
+                        .fill(palette.primaryText.color.opacity(0.06))
 
                     ForEach(1..<4, id: \.self) { index in
                         Rectangle()
-                            .fill(Color.primary.opacity(0.07))
+                            .fill(palette.primaryText.color.opacity(0.07))
                             .frame(width: 1)
                             .offset(x: width * CGFloat(index) / 4)
                     }
@@ -292,23 +314,15 @@ private struct TimelineRowView: View {
 
         let x = width * startFraction
         let barWidth = max(3, width * (endFraction - startFraction))
-        let color = Color(hex: row.alter.colorHex)
-        let radius = min(7, barWidth / 2)
 
-        return RoundedRectangle(cornerRadius: radius, style: .continuous)
-            .fill(color.opacity(segment.mode == .full ? 0.95 : 0.55))
-            .overlay(
-                RoundedRectangle(cornerRadius: radius, style: .continuous)
-                    .strokeBorder(
-                        color,
-                        style: StrokeStyle(
-                            lineWidth: 1,
-                            dash: segment.mode == .partial ? [3, 2] : []
-                        )
-                    )
-            )
-            .frame(width: barWidth, height: 20)
-            .offset(x: x)
+        return FrontingBar(
+            color: Color(hex: row.alter.colorHex),
+            mode: segment.mode,
+            cornerRadius: min(7, barWidth / 2),
+            showStripes: !theme.settings.hidePartialStripes
+        )
+        .frame(width: barWidth, height: 20)
+        .offset(x: x)
     }
 
     private func nowLine(width: CGFloat) -> some View {
@@ -316,7 +330,7 @@ private struct TimelineRowView: View {
         let fraction = max(0, min(1, now.timeIntervalSince(dayStart) / (24 * 60 * 60)))
 
         return Rectangle()
-            .fill(Color.accentColor)
+            .fill(palette.accent.color)
             .frame(width: 2, height: 26)
             .offset(x: width * fraction)
     }
@@ -326,28 +340,29 @@ struct TimelineDayDetailView: View {
     let dayID: Date
 
     @EnvironmentObject private var store: AppStore
+    @EnvironmentObject private var theme: ThemeManager
+    @Environment(\.themePalette) private var palette
+    @Environment(\.colorScheme) private var colorScheme
+
+    @State private var currentDay: Date
     @State private var now = Date()
     @State private var selectedMinutes: Double?
+    @State private var previousScrub: Double?
+    @State private var editingSession: FrontingSession?
+    @State private var isAddingEntry = false
 
-    private let hourWidth: CGFloat = 54
-    private let labelWidth: CGFloat = 104
-    private let rowHeight: CGFloat = 36
-    private let rowSpacing: CGFloat = 8
-    private let axisHeight: CGFloat = 30
+    init(dayID: Date) {
+        self.dayID = dayID
+        _currentDay = State(initialValue: Calendar.current.startOfDay(for: dayID))
+    }
 
-    private var calendar: Calendar { Calendar.current }
-    private var dayStart: Date { calendar.startOfDay(for: dayID) }
-    private var isToday: Bool { calendar.isDateInToday(dayID) }
+    private var calendar: Calendar { theme.timelineCalendar }
+    private var dayStart: Date { calendar.startOfDay(for: currentDay) }
+    private var isToday: Bool { calendar.isDateInToday(currentDay) }
+
     private var day: TimelineDay? {
-        TimelineBuilder.buildDay(dayID, state: store.state, now: now)
+        TimelineBuilder.buildDay(currentDay, state: store.state, now: now, calendar: calendar)
     }
-    private var contentWidth: CGFloat { hourWidth * 24 }
-    private var laneAreaHeight: CGFloat {
-        guard let day else { return 0 }
-        let rows = CGFloat(day.rows.count)
-        return rows * rowHeight + max(0, rows - 1) * rowSpacing
-    }
-    private var timelineHeight: CGFloat { axisHeight + laneAreaHeight }
 
     private var nowMinutes: Double {
         max(0, min(1440, now.timeIntervalSince(dayStart) / 60))
@@ -369,218 +384,262 @@ struct TimelineDayDetailView: View {
         dayStart.addingTimeInterval(effectiveSelectedMinutes * 60)
     }
 
-    private var selectedBinding: Binding<Double> {
-        Binding(
-            get: { effectiveSelectedMinutes },
-            set: { selectedMinutes = $0 }
-        )
-    }
-
-    private var selectedHour: Int {
-        min(23, Int(effectiveSelectedMinutes / 60))
-    }
-
     private var frontersAtSelectedTime: [FronterAtTime] {
         guard let day else { return [] }
         return day.rows.compactMap { row in
-            guard let segment = row.segments.first(where: { $0.start <= selectedTime && selectedTime < $0.end }) else {
+            guard let segment = row.segments.first(where: {
+                $0.start <= selectedTime && selectedTime < $0.end
+            }) else {
                 return nil
             }
             return FronterAtTime(alter: row.alter, segment: segment)
         }
     }
 
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                summaryCard
-                timelineCard
-                scrubberCard
+    private var boundaryMinutes: [Double] {
+        guard let day else { return [] }
+        return day.rows.flatMap { row in
+            row.segments.flatMap { segment in
+                [
+                    segment.start.timeIntervalSince(dayStart) / 60,
+                    segment.end.timeIntervalSince(dayStart) / 60
+                ]
+            }
+        }
+    }
 
-                if let day {
-                    alterLegend(day)
+    var body: some View {
+        GeometryReader { geometry in
+            VStack(spacing: 0) {
+                readout
+
+                timelineSection
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                legend
+            }
+            .padding(.horizontal, geometry.size.width > 800 ? 28 : 16)
+            .padding(.top, 8)
+            .padding(.bottom, 10)
+        }
+        .background(ThemedBackground(fill: palette.background))
+        .navigationTitle(title)
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
+        .toolbar {
+            ToolbarItemGroup(placement: .primaryAction) {
+                Button {
+                    moveDay(-1)
+                } label: {
+                    Label("Previous Day", systemImage: "chevron.left")
+                }
+
+                Button {
+                    moveDay(1)
+                } label: {
+                    Label("Next Day", systemImage: "chevron.right")
+                }
+                .disabled(isToday)
+
+                Button {
+                    isAddingEntry = true
+                } label: {
+                    Label("Add Entry", systemImage: "plus")
                 }
             }
-            .padding(20)
-            .frame(maxWidth: 1100)
-            .frame(maxWidth: .infinity)
         }
-        .background(
-            LinearGradient(
-                colors: [Color.accentColor.opacity(0.10), Color.clear],
-                startPoint: .top,
-                endPoint: .center
-            )
-            .ignoresSafeArea()
-        )
-        .navigationTitle(title)
         .task {
             while !Task.isCancelled {
                 now = Date()
                 try? await Task.sleep(for: .seconds(60))
             }
         }
+        .sheet(item: $editingSession) { session in
+            SessionEditorView(session: session, defaultStart: selectedTime)
+        }
+        .sheet(isPresented: $isAddingEntry) {
+            SessionEditorView(session: nil, defaultStart: defaultStartForNewEntry)
+        }
+        .onChange(of: currentDay) { _, _ in
+            selectedMinutes = nil
+            previousScrub = nil
+        }
     }
 
     private var title: String {
         if isToday { return "Today" }
-        if calendar.isDateInYesterday(dayID) { return "Yesterday" }
-        return dayID.formatted(.dateTime.weekday(.wide).month(.abbreviated).day())
+        if calendar.isDateInYesterday(currentDay) { return "Yesterday" }
+        return currentDay.formatted(.dateTime.weekday(.wide).month(.abbreviated).day())
     }
 
-    private var summaryCard: some View {
-        VStack(alignment: .leading, spacing: 16) {
+    private var defaultStartForNewEntry: Date {
+        if isToday { return min(Date(), selectedTime) }
+        return min(Date(), dayStart.addingTimeInterval(12 * 60 * 60))
+    }
+
+    private var readout: some View {
+        VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .firstTextBaseline) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(selectedTime, format: .dateTime.hour().minute())
-                        .font(.system(size: 38, weight: .bold, design: .rounded))
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(theme.timeString(selectedTime))
+                        .font(.system(size: 42, weight: .bold, design: .rounded))
                         .monospacedDigit()
-                    Text("Selected time")
+                        .foregroundStyle(palette.primaryText.color)
+                        .minimumScaleFactor(0.6)
+                        .lineLimit(1)
+
+                    Text(currentDay, format: .dateTime.weekday(.wide).month(.abbreviated).day().year())
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(palette.secondaryText.color)
                 }
 
-                Spacer()
+                Spacer(minLength: 12)
 
-                VStack(alignment: .trailing, spacing: 3) {
-                    Text(dayID, format: .dateTime.weekday(.wide).month(.abbreviated).day().year())
-                        .font(.subheadline.weight(.semibold))
-                    if let day {
-                        Text("\(day.rows.count) alter\(day.rows.count == 1 ? "" : "s") tracked")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
+                if let day {
+                    Text("\(day.rows.count) alter\(day.rows.count == 1 ? "" : "s")")
+                        .font(.caption)
+                        .foregroundStyle(palette.secondaryText.color)
                 }
             }
 
             if frontersAtSelectedTime.isEmpty {
                 Label("No one is fronting at this time", systemImage: "moon.zzz")
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(palette.secondaryText.color)
             } else {
-                VStack(alignment: .leading, spacing: 8) {
-                    ForEach(frontersAtSelectedTime) { fronter in
-                        FronterAtTimeRow(fronter: fronter)
-                    }
-                }
-            }
-        }
-        .padding(18)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .strokeBorder(Color.primary.opacity(0.07), lineWidth: 1)
-        )
-    }
-
-    private var timelineCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .firstTextBaseline) {
-                Text("Day timeline")
-                    .font(.headline)
-                Spacer()
-                Text("Scroll the day or drag the scrubber")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            if let day {
-                HStack(alignment: .top, spacing: 10) {
-                    labelColumn(day)
-                    timeline(day)
-                }
-            } else {
-                ContentUnavailableView {
-                    Label("No sessions", systemImage: "moon.zzz")
-                } description: {
-                    Text("There were no fronting sessions recorded on this day.")
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 24)
-            }
-        }
-        .padding(18)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .strokeBorder(Color.primary.opacity(0.07), lineWidth: 1)
-        )
-    }
-
-    private func labelColumn(_ day: TimelineDay) -> some View {
-        VStack(alignment: .leading, spacing: rowSpacing) {
-            Color.clear
-                .frame(height: axisHeight)
-
-            ForEach(day.rows) { row in
-                HStack(spacing: 8) {
-                    AvatarView(alter: row.alter, size: 26)
-                    Text(row.alter.name)
-                        .font(.subheadline.weight(.medium))
-                        .lineLimit(1)
-                }
-                .frame(width: labelWidth, height: rowHeight, alignment: .leading)
-            }
-        }
-        .frame(width: labelWidth, alignment: .leading)
-    }
-
-    private func timeline(_ day: TimelineDay) -> some View {
-        ScrollViewReader { proxy in
-            ScrollView(.horizontal, showsIndicators: false) {
-                ZStack(alignment: .topLeading) {
-                    VStack(alignment: .leading, spacing: rowSpacing) {
-                        axis
-
-                        ForEach(day.rows) { row in
-                            lane(row)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(frontersAtSelectedTime) { fronter in
+                            HStack(spacing: 7) {
+                                AvatarView(alter: fronter.alter, size: 24)
+                                Text(fronter.alter.name)
+                                    .font(.caption.weight(.semibold))
+                                    .lineLimit(1)
+                                    .foregroundStyle(palette.primaryText.color)
+                                StatusBadge(mode: fronter.segment.mode, compact: true)
+                            }
+                            .padding(.horizontal, 9)
+                            .padding(.vertical, 6)
+                            .background(
+                                palette.surface.fill(Capsule())
+                            )
+                            .overlay(
+                                Capsule()
+                                    .strokeBorder(Color(hex: fronter.alter.colorHex).opacity(0.45), lineWidth: 1)
+                            )
                         }
                     }
-                    .frame(width: contentWidth, alignment: .leading)
+                }
+            }
+        }
+        .padding(.bottom, 6)
+    }
+
+    @ViewBuilder
+    private var timelineSection: some View {
+        if let day {
+            GeometryReader { geometry in
+                let labelWidth = min(104, max(64, geometry.size.width * 0.18))
+                let chartWidth = max(120, geometry.size.width - labelWidth)
+                let axisHeight: CGFloat = 26
+                let rowSpacing: CGFloat = 7
+                let rowCount = max(1, day.rows.count)
+                let available = max(70, geometry.size.height - axisHeight - 8)
+                let laneHeight = min(
+                    48,
+                    max(20, (available - rowSpacing * CGFloat(rowCount - 1)) / CGFloat(rowCount))
+                )
+
+                ZStack(alignment: .topLeading) {
+                    VStack(spacing: 0) {
+                        HStack(spacing: 0) {
+                            Color.clear
+                                .frame(width: labelWidth, height: axisHeight)
+
+                            axisView(width: chartWidth)
+                        }
+
+                        ScrollView(.vertical, showsIndicators: false) {
+                            VStack(spacing: rowSpacing) {
+                                ForEach(day.rows) { row in
+                                    HStack(spacing: 0) {
+                                        rowLabel(row)
+                                            .frame(width: labelWidth, height: laneHeight, alignment: .leading)
+
+                                        laneView(
+                                            row,
+                                            chartWidth: chartWidth,
+                                            laneHeight: laneHeight
+                                        )
+                                    }
+                                }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .frame(maxHeight: .infinity)
+                    }
 
                     if isToday {
-                        nowLine
+                        verticalLine(
+                            x: labelWidth + chartWidth * CGFloat(nowMinutes / 1440),
+                            top: axisHeight,
+                            height: max(0, geometry.size.height - axisHeight),
+                            color: palette.accent.color,
+                            width: 2
+                        )
                     }
 
-                    selectedLine
+                    selectedLine(
+                        x: labelWidth + chartWidth * CGFloat(effectiveSelectedMinutes / 1440),
+                        top: axisHeight,
+                        height: max(0, geometry.size.height - axisHeight)
+                    )
                 }
-                .frame(width: contentWidth, height: timelineHeight, alignment: .topLeading)
-                .padding(.trailing, 18)
+                .contentShape(Rectangle())
+                .gesture(scrubGesture(labelWidth: labelWidth, chartWidth: chartWidth))
             }
-            .onAppear {
-                Task { @MainActor in
-                    proxy.scrollTo("hour-\(selectedHour)", anchor: .center)
-                }
+        } else {
+            ContentUnavailableView {
+                Label("No sessions", systemImage: "moon.zzz")
+            } description: {
+                Text("There were no fronting sessions recorded on this day.")
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
 
-    private var axis: some View {
+    private func axisView(width: CGFloat) -> some View {
         HStack(spacing: 0) {
-            ForEach(0..<24, id: \.self) { hour in
-                ZStack(alignment: .leading) {
-                    if hour % 2 == 0 {
-                        Text(hourLabel(hour))
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .frame(width: hourWidth, height: axisHeight, alignment: .leading)
-                .id("hour-\(hour)")
+            ForEach(0...4, id: \.self) { index in
+                if index > 0 { Spacer(minLength: 0) }
+                Text(theme.hourLabel(index * 6))
+                    .font(.caption2)
+                    .foregroundStyle(palette.secondaryText.color)
             }
         }
-        .frame(width: contentWidth, height: axisHeight, alignment: .leading)
-        .overlay(alignment: .trailing) {
-            Text("12a")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-        }
+        .frame(width: width, height: 26, alignment: .leading)
     }
 
-    private func lane(_ row: TimelineRow) -> some View {
+    private func rowLabel(_ row: TimelineRow) -> some View {
+        HStack(spacing: 6) {
+            AvatarView(alter: row.alter, size: 24)
+            Text(row.alter.name)
+                .font(.caption.weight(.medium))
+                .lineLimit(1)
+                .foregroundStyle(palette.primaryText.color)
+        }
+        .padding(.trailing, 6)
+    }
+
+    private func laneView(
+        _ row: TimelineRow,
+        chartWidth: CGFloat,
+        laneHeight: CGFloat
+    ) -> some View {
         ZStack(alignment: .leading) {
             RoundedRectangle(cornerRadius: 9, style: .continuous)
-                .fill(Color.primary.opacity(0.055))
+                .fill(palette.primaryText.color.opacity(0.055))
 
             Canvas { context, size in
                 for hour in 0...24 {
@@ -591,190 +650,116 @@ struct TimelineDayDetailView: View {
                     path.addLine(to: CGPoint(x: x, y: size.height))
                     context.stroke(
                         path,
-                        with: .color(Color.primary.opacity(isMajor ? 0.13 : 0.06)),
+                        with: .color(palette.primaryText.color.opacity(isMajor ? 0.13 : 0.06)),
                         lineWidth: 1
                     )
                 }
             }
 
             ForEach(row.segments) { segment in
-                segmentBar(segment, alter: row.alter)
+                segmentBar(segment, alter: row.alter, chartWidth: chartWidth, laneHeight: laneHeight)
             }
         }
-        .frame(width: contentWidth, height: rowHeight)
+        .frame(width: chartWidth, height: laneHeight)
     }
 
-    private func segmentBar(_ segment: TimelineSegment, alter: Alter) -> some View {
+    private func segmentBar(
+        _ segment: TimelineSegment,
+        alter: Alter,
+        chartWidth: CGFloat,
+        laneHeight: CGFloat
+    ) -> some View {
         let startFraction = max(0, min(1, segment.start.timeIntervalSince(dayStart) / (24 * 60 * 60)))
         let endFraction = max(0, min(1, segment.end.timeIntervalSince(dayStart) / (24 * 60 * 60)))
-        let x = contentWidth * startFraction
-        let barWidth = max(4, contentWidth * (endFraction - startFraction))
-        let color = Color(hex: alter.colorHex)
-        let radius = min(8, barWidth / 2)
+        let x = chartWidth * startFraction
+        let barWidth = max(4, chartWidth * (endFraction - startFraction))
 
-        return RoundedRectangle(cornerRadius: radius, style: .continuous)
-            .fill(
-                LinearGradient(
-                    colors: [
-                        color.opacity(segment.mode == .full ? 1 : 0.68),
-                        color.opacity(segment.mode == .full ? 0.82 : 0.48)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: radius, style: .continuous)
-                    .strokeBorder(
-                        color.opacity(0.9),
-                        style: StrokeStyle(
-                            lineWidth: 1,
-                            dash: segment.mode == .partial ? [4, 3] : []
-                        )
-                    )
-            )
-            .overlay(alignment: .top) {
-                RoundedRectangle(cornerRadius: radius, style: .continuous)
-                    .fill(Color.white.opacity(0.22))
-                    .frame(height: 1)
-                    .padding(.horizontal, 2)
-            }
-            .frame(width: barWidth, height: 28)
-            .offset(x: x)
-            .accessibilityLabel(
-                "\(alter.name), \(segment.mode.label), \(timeRange(for: segment))"
-            )
+        return FrontingBar(
+            color: Color(hex: alter.colorHex),
+            mode: segment.mode,
+            cornerRadius: min(8, barWidth / 2),
+            showStripes: !theme.settings.hidePartialStripes
+        )
+        .frame(width: barWidth, height: max(10, laneHeight - 8))
+        .offset(x: x, y: 4)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            editingSession = store.state.sessions.first { $0.id == segment.id }
+        }
+        .accessibilityLabel("\(alter.name), \(segment.mode.label)")
+        .accessibilityHint("Opens this entry for editing")
     }
 
-    private var nowLine: some View {
-        let fraction = max(0, min(1, now.timeIntervalSince(dayStart) / (24 * 60 * 60)))
-
-        return Rectangle()
-            .fill(Color.accentColor)
-            .frame(width: 2, height: laneAreaHeight)
-            .offset(x: contentWidth * fraction - 1, y: axisHeight)
+    private func verticalLine(
+        x: CGFloat,
+        top: CGFloat,
+        height: CGFloat,
+        color: Color,
+        width: CGFloat
+    ) -> some View {
+        Rectangle()
+            .fill(color)
+            .frame(width: width, height: height)
+            .offset(x: x - width / 2, y: top)
+            .allowsHitTesting(false)
     }
 
-    private var selectedLine: some View {
-        let fraction = effectiveSelectedMinutes / 1440
-
-        return ZStack(alignment: .top) {
+    private func selectedLine(x: CGFloat, top: CGFloat, height: CGFloat) -> some View {
+        ZStack(alignment: .top) {
             Rectangle()
-                .fill(Color.primary.opacity(0.78))
-                .frame(width: 2, height: laneAreaHeight)
+                .fill(palette.primaryText.color.opacity(0.72))
+                .frame(width: 2, height: height)
 
             Circle()
-                .fill(Color.primary)
-                .frame(width: 10, height: 10)
-                .offset(y: -5)
+                .fill(palette.accent.color)
+                .frame(width: 12, height: 12)
+                .overlay(Circle().strokeBorder(palette.primaryText.color.opacity(0.65), lineWidth: 1.5))
+                .offset(y: -6)
         }
-        .offset(x: contentWidth * fraction - 1, y: axisHeight)
+        .offset(x: x - 1, y: top)
+        .allowsHitTesting(false)
     }
 
-    private var scrubberCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .firstTextBaseline) {
-                Text("Scrub the day")
-                    .font(.headline)
-                Spacer()
-                Text(selectedTime, format: .dateTime.hour().minute())
-                    .font(.subheadline.weight(.semibold))
-                    .monospacedDigit()
-            }
+    private func scrubGesture(labelWidth: CGFloat, chartWidth: CGFloat) -> some Gesture {
+        DragGesture(minimumDistance: 2)
+            .onChanged { value in
+                let x = value.location.x - labelWidth
+                let fraction = max(0, min(1, x / chartWidth))
+                let minutes = Double(fraction) * 1440
 
-            Slider(value: selectedBinding, in: 0...1440, step: 1)
-                .tint(Color.accentColor)
-
-            HStack {
-                Text("12a")
-                Spacer()
-                Text("6a")
-                Spacer()
-                Text("12p")
-                Spacer()
-                Text("6p")
-                Spacer()
-                Text("12a")
-            }
-            .font(.caption2)
-            .foregroundStyle(.secondary)
-
-            if isToday {
-                HStack {
-                    Spacer()
-                    Button("Jump to now") {
-                        selectedMinutes = nowMinutes
+                if let previousScrub {
+                    let lower = min(previousScrub, minutes)
+                    let upper = max(previousScrub, minutes)
+                    if boundaryMinutes.contains(where: { $0 > lower && $0 <= upper }) {
+                        Haptics.selection()
                     }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
                 }
+
+                previousScrub = minutes
+                selectedMinutes = minutes
             }
-        }
-        .padding(18)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .strokeBorder(Color.primary.opacity(0.07), lineWidth: 1)
-        )
-    }
-
-    private func alterLegend(_ day: TimelineDay) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Alters")
-                .font(.headline)
-
-            LazyVGrid(
-                columns: [GridItem(.adaptive(minimum: 160), spacing: 10)],
-                alignment: .leading,
-                spacing: 10
-            ) {
-                ForEach(day.rows) { row in
-                    HStack(spacing: 8) {
-                        AvatarView(alter: row.alter, size: 26)
-
-                        VStack(alignment: .leading, spacing: 1) {
-                            Text(row.alter.name)
-                                .font(.subheadline.weight(.medium))
-                                .lineLimit(1)
-                            Text(shortDuration(row.totalDuration))
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                        }
-
-                        Spacer(minLength: 0)
-
-                        Circle()
-                            .fill(Color(hex: row.alter.colorHex))
-                            .frame(width: 10, height: 10)
-                    }
-                    .padding(8)
-                    .background(
-                        Color.primary.opacity(0.04),
-                        in: RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    )
-                }
+            .onEnded { _ in
+                previousScrub = nil
             }
+    }
+
+    private func moveDay(_ offset: Int) {
+        guard let next = calendar.date(byAdding: .day, value: offset, to: currentDay) else { return }
+        let today = calendar.startOfDay(for: Date())
+        currentDay = min(next, today)
+    }
+
+    private var legend: some View {
+        HStack(spacing: 16) {
+            FrontingLegendItem(title: "Full", mode: .full)
+            FrontingLegendItem(title: "Partial", mode: .partial)
+            Spacer()
+            Text("Drag across the timeline to scrub")
+                .font(.caption2)
+                .foregroundStyle(palette.secondaryText.color)
         }
-        .padding(18)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .strokeBorder(Color.primary.opacity(0.07), lineWidth: 1)
-        )
-    }
-
-    private func hourLabel(_ hour: Int) -> String {
-        let suffix = hour < 12 ? "a" : "p"
-        let display = hour % 12 == 0 ? 12 : hour % 12
-        return "\(display)\(suffix)"
-    }
-
-    private func timeRange(for segment: TimelineSegment) -> String {
-        let start = segment.start.formatted(.dateTime.hour().minute())
-        let end = segment.isOngoing
-            ? "now"
-            : segment.end.formatted(.dateTime.hour().minute())
-        return "\(start) to \(end)"
+        .font(.caption)
+        .padding(.top, 6)
     }
 }
 
@@ -782,39 +767,4 @@ private struct FronterAtTime: Identifiable {
     var id: UUID { alter.id }
     let alter: Alter
     let segment: TimelineSegment
-}
-
-private struct FronterAtTimeRow: View {
-    let fronter: FronterAtTime
-
-    var body: some View {
-        HStack(spacing: 10) {
-            AvatarView(alter: fronter.alter, size: 34)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(fronter.alter.name)
-                    .font(.subheadline.weight(.semibold))
-                Text(timeRange)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            Spacer(minLength: 0)
-
-            StatusBadge(mode: fronter.segment.mode, compact: true)
-        }
-        .padding(10)
-        .background(
-            Color(hex: fronter.alter.colorHex).opacity(0.10),
-            in: RoundedRectangle(cornerRadius: 12, style: .continuous)
-        )
-    }
-
-    private var timeRange: String {
-        let start = fronter.segment.start.formatted(.dateTime.hour().minute())
-        let end = fronter.segment.isOngoing
-            ? "now"
-            : fronter.segment.end.formatted(.dateTime.hour().minute())
-        return "\(start) – \(end)"
-    }
 }

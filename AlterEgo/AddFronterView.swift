@@ -2,6 +2,8 @@ import SwiftUI
 
 struct AddFronterView: View {
     @EnvironmentObject private var store: AppStore
+    @EnvironmentObject private var theme: ThemeManager
+    @Environment(\.themePalette) private var palette
     @Environment(\.dismiss) private var dismiss
 
     @State private var pendingAlter: Alter?
@@ -33,7 +35,10 @@ struct AddFronterView: View {
                     }
                 }
                 .padding(20)
+                .foregroundStyle(palette.primaryText.color)
             }
+            .background(ThemedBackground(fill: palette.background))
+            .tint(palette.accent.color)
             .navigationTitle("Add Fronter")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -53,6 +58,7 @@ struct AddFronterView: View {
             .sheet(isPresented: $isAddingAlter) {
                 AlterEditorView(alter: nil)
                     .environmentObject(store)
+                    .environmentObject(theme)
             }
             .confirmationDialog(
                 "How is \(pendingAlter?.name ?? "this alter") fronting?",
@@ -83,6 +89,7 @@ struct AddFronterView: View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Currently fronting")
                 .font(.headline)
+                .foregroundStyle(palette.primaryText.color)
 
             ForEach(activeAlters) { alter in
                 HStack(spacing: 10) {
@@ -90,6 +97,7 @@ struct AddFronterView: View {
 
                     Text(alter.name)
                         .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(palette.primaryText.color)
 
                     Spacer(minLength: 0)
 
@@ -100,13 +108,20 @@ struct AddFronterView: View {
             }
         }
         .padding(14)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background {
+            ThemedCardBackground(fill: palette.surface, cornerRadius: 16)
+        }
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .strokeBorder(palette.primaryText.color.opacity(0.08), lineWidth: 1)
+        )
     }
 
     private var alterPicker: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Who is fronting?")
                 .font(.headline)
+                .foregroundStyle(palette.primaryText.color)
 
             ForEach(availableAlters) { alter in
                 Button {
@@ -118,16 +133,18 @@ struct AddFronterView: View {
 
                         Text(alter.name)
                             .font(.body.weight(.semibold))
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(palette.primaryText.color)
 
                         Spacer(minLength: 0)
 
                         Image(systemName: "chevron.right")
                             .font(.caption.weight(.semibold))
-                            .foregroundStyle(.tertiary)
+                            .foregroundStyle(palette.secondaryText.color)
                     }
                     .padding(12)
-                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .background {
+                        ThemedCardBackground(fill: palette.surface, cornerRadius: 14)
+                    }
                     .overlay(
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
                             .strokeBorder(Color(hex: alter.colorHex).opacity(0.3), lineWidth: 1)

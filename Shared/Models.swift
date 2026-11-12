@@ -5,6 +5,11 @@ enum SharedConstants {
     static let stateFileName = "alterego-state.json"
     static let widgetKind = "AlterEgoWidget"
     static let stateNotification = "gay.arisparks.AlterEgo.stateChanged"
+
+    static let themeSettingsKey = "alterego.theme.settings"
+    static let accentColorKey = "alterego.theme.accentHex"
+    static let partialStripesKey = "alterego.theme.showPartialStripes"
+    static let defaultAccentHex = "#6C5CE7"
 }
 
 struct Alter: Identifiable, Codable, Hashable {
@@ -21,13 +26,26 @@ struct Alter: Identifiable, Codable, Hashable {
     var colorHex: String
     var createdAt: Date
 
+    var descriptionText: String?
+    var pronouns: String?
+    var role: String?
+    var characteristics: [String]?
+    var originalImageData: Data?
+    var bannerColorHex: String?
+
     init(
         id: UUID = UUID(),
         name: String,
         emoji: String = "🙂",
         imageData: Data? = nil,
         colorHex: String = Alter.palette[0],
-        createdAt: Date = Date()
+        createdAt: Date = Date(),
+        descriptionText: String? = nil,
+        pronouns: String? = nil,
+        role: String? = nil,
+        characteristics: [String]? = nil,
+        originalImageData: Data? = nil,
+        bannerColorHex: String? = nil
     ) {
         self.id = id
         self.name = name
@@ -35,6 +53,32 @@ struct Alter: Identifiable, Codable, Hashable {
         self.imageData = imageData
         self.colorHex = colorHex
         self.createdAt = createdAt
+        self.descriptionText = descriptionText
+        self.pronouns = pronouns
+        self.role = role
+        self.characteristics = characteristics
+        self.originalImageData = originalImageData
+        self.bannerColorHex = bannerColorHex
+    }
+
+    var displayRole: String? {
+        guard let role, !role.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
+        return role
+    }
+
+    var displayPronouns: String? {
+        guard let pronouns, !pronouns.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
+        return pronouns
+    }
+
+    var displayDescription: String? {
+        guard let descriptionText,
+              !descriptionText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
+        return descriptionText
+    }
+
+    var displayCharacteristics: [String] {
+        (characteristics ?? []).filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
     }
 }
 
@@ -112,6 +156,21 @@ struct AppState: Codable {
 
     var isAnyoneFronting: Bool {
         sessions.contains(where: \.isActive)
+    }
+}
+
+enum SharedTheme {
+    static var defaults: UserDefaults {
+        UserDefaults(suiteName: SharedConstants.appGroupID) ?? .standard
+    }
+
+    static var accentHex: String {
+        defaults.string(forKey: SharedConstants.accentColorKey) ?? SharedConstants.defaultAccentHex
+    }
+
+    static var showPartialStripes: Bool {
+        if defaults.object(forKey: SharedConstants.partialStripesKey) == nil { return true }
+        return defaults.bool(forKey: SharedConstants.partialStripesKey)
     }
 }
 

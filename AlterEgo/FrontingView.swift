@@ -2,6 +2,8 @@ import SwiftUI
 
 struct FrontingView: View {
     @EnvironmentObject private var store: AppStore
+    @EnvironmentObject private var theme: ThemeManager
+    @Environment(\.themePalette) private var palette
 
     @State private var pendingAlter: Alter?
     @State private var showFrontingChoice = false
@@ -26,6 +28,7 @@ struct FrontingView: View {
                 .padding(20)
                 .frame(maxWidth: 940)
                 .frame(maxWidth: .infinity)
+                .foregroundStyle(palette.primaryText.color)
             }
             .background(background)
             .navigationTitle("Fronting")
@@ -40,6 +43,8 @@ struct FrontingView: View {
             }
             .sheet(isPresented: $isAddingAlter) {
                 AlterEditorView(alter: nil)
+                    .environmentObject(store)
+                    .environmentObject(theme)
             }
             .confirmationDialog(
                 "How is \(pendingAlter?.name ?? "this alter") fronting?",
@@ -95,6 +100,7 @@ struct FrontingView: View {
             HStack(alignment: .firstTextBaseline) {
                 Text("Now Fronting")
                     .font(.title2.bold())
+                    .foregroundStyle(palette.primaryText.color)
                 Spacer()
                 if !activeAlters.isEmpty {
                     Button("End All", role: .destructive) {
@@ -113,7 +119,8 @@ struct FrontingView: View {
                         ForEach(activeAlters) { alter in
                             ActiveAlterCard(
                                 alter: alter,
-                                session: store.activeSession(for: alter.id)
+                                session: store.activeSession(for: alter.id),
+                                showStripes: !theme.settings.hidePartialStripes
                             ) {
                                 store.stop(alter)
                             }
@@ -130,10 +137,11 @@ struct FrontingView: View {
             HStack(alignment: .firstTextBaseline) {
                 Text("Alters")
                     .font(.title2.bold())
+                    .foregroundStyle(palette.primaryText.color)
                 Spacer()
                 Text("Tap an alter to update who is fronting")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(palette.secondaryText.color)
                     .multilineTextAlignment(.trailing)
             }
 
@@ -158,7 +166,8 @@ struct FrontingView: View {
                     ForEach(alters) { alter in
                         AlterTapCard(
                             alter: alter,
-                            session: store.activeSession(for: alter.id)
+                            session: store.activeSession(for: alter.id),
+                            showStripes: !theme.settings.hidePartialStripes
                         )
                         .onTapGesture {
                             handleTap(alter)
@@ -170,12 +179,16 @@ struct FrontingView: View {
     }
 
     private var background: some View {
-        LinearGradient(
-            colors: [Color.accentColor.opacity(0.10), Color.clear],
-            startPoint: .top,
-            endPoint: .center
-        )
-        .ignoresSafeArea()
+        ZStack {
+            ThemedBackground(fill: palette.background)
+
+            LinearGradient(
+                colors: [palette.accent.color.opacity(0.16), .clear],
+                startPoint: .top,
+                endPoint: .center
+            )
+            .ignoresSafeArea()
+        }
     }
 
     private func handleTap(_ alter: Alter) {
@@ -193,30 +206,42 @@ struct FrontingView: View {
 }
 
 private struct EmptyNowCard: View {
+    @Environment(\.themePalette) private var palette
+
     var body: some View {
         HStack(spacing: 14) {
             Image(systemName: "moon.zzz.fill")
                 .font(.title2)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(palette.accent.color)
 
             VStack(alignment: .leading, spacing: 3) {
                 Text("No one is fronting")
                     .font(.headline)
+                    .foregroundStyle(palette.primaryText.color)
                 Text("Tap an alter below to start a session.")
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(palette.secondaryText.color)
             }
 
             Spacer()
         }
         .padding(18)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .background {
+            ThemedCardBackground(fill: palette.surface, cornerRadius: 18)
+        }
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .strokeBorder(palette.primaryText.color.opacity(0.08), lineWidth: 1)
+        )
     }
 }
 
 private struct ActiveAlterCard: View {
+    @Environment(\.themePalette) private var palette
+
     let alter: Alter
     let session: FrontingSession?
+    let showStripes: Bool
     let onStop: () -> Void
 
     var body: some View {
@@ -227,6 +252,7 @@ private struct ActiveAlterCard: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(alter.name)
                         .font(.headline)
+                        .foregroundStyle(palette.primaryText.color)
                         .lineLimit(1)
                     if let session {
                         StatusBadge(mode: session.mode)
@@ -237,10 +263,18 @@ private struct ActiveAlterCard: View {
             }
 
             if let session {
+                FrontingBar(
+                    color: Color(hex: alter.colorHex),
+                    mode: session.mode,
+                    cornerRadius: 4,
+                    showStripes: showStripes
+                )
+                .frame(height: 6)
+
                 SwiftUI.TimelineView(.periodic(from: .now, by: 30)) { context in
                     Label(shortDuration(session.duration(at: context.date)), systemImage: "clock")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(palette.secondaryText.color)
                 }
             }
 
@@ -253,17 +287,22 @@ private struct ActiveAlterCard: View {
         }
         .padding(16)
         .frame(width: 225, alignment: .leading)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .background {
+            ThemedCardBackground(fill: palette.surface, cornerRadius: 20)
+        }
         .overlay(
             RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .strokeBorder(Color(hex: alter.colorHex).opacity(0.45), lineWidth: 1)
+                .strokeBorder(Color(hex: alter.colorHex).opacity(0.5), lineWidth: 1)
         )
     }
 }
 
 private struct AlterTapCard: View {
+    @Environment(\.themePalette) private var palette
+
     let alter: Alter
     let session: FrontingSession?
+    let showStripes: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -272,7 +311,7 @@ private struct AlterTapCard: View {
                 Spacer()
                 if let session {
                     Circle()
-                        .fill(session.mode == .full ? Color.accentColor : Color.orange)
+                        .fill(session.mode == .full ? palette.accent.color : Color.orange)
                         .frame(width: 10, height: 10)
                         .padding(.top, 4)
                 }
@@ -280,21 +319,32 @@ private struct AlterTapCard: View {
 
             Text(alter.name)
                 .font(.headline)
+                .foregroundStyle(palette.primaryText.color)
                 .lineLimit(1)
 
             if let session {
                 Text(session.mode.label)
                     .font(.caption)
-                    .foregroundStyle(session.mode == .full ? Color.accentColor : Color.orange)
+                    .foregroundStyle(session.mode == .full ? palette.accent.color : Color.orange)
+
+                FrontingBar(
+                    color: Color(hex: alter.colorHex),
+                    mode: session.mode,
+                    cornerRadius: 3,
+                    showStripes: showStripes
+                )
+                .frame(height: 5)
             } else {
                 Text("Not fronting")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(palette.secondaryText.color)
             }
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .background {
+            ThemedCardBackground(fill: palette.surface, cornerRadius: 18)
+        }
         .overlay(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .strokeBorder(Color(hex: alter.colorHex).opacity(session == nil ? 0.25 : 0.65), lineWidth: 1)

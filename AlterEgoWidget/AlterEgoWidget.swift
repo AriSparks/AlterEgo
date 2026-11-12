@@ -13,6 +13,8 @@ struct AlterEgoEntry: TimelineEntry {
     let date: Date
     let fronters: [Fronter]
     let totalAlters: Int
+    let accentHex: String
+    let showStripes: Bool
 }
 
 struct AlterEgoProvider: TimelineProvider {
@@ -22,7 +24,9 @@ struct AlterEgoProvider: TimelineProvider {
         return AlterEgoEntry(
             date: .now,
             fronters: [Fronter(alter: alter, session: session)],
-            totalAlters: 1
+            totalAlters: 1,
+            accentHex: SharedConstants.defaultAccentHex,
+            showStripes: true
         )
     }
 
@@ -49,7 +53,9 @@ struct AlterEgoProvider: TimelineProvider {
         return AlterEgoEntry(
             date: .now,
             fronters: fronters,
-            totalAlters: state.alters.count
+            totalAlters: state.alters.count,
+            accentHex: SharedTheme.accentHex,
+            showStripes: SharedTheme.showPartialStripes
         )
     }
 }
@@ -62,11 +68,14 @@ struct AlterEgoWidget: Widget {
         ) { entry in
             AlterEgoWidgetView(entry: entry)
                 .containerBackground(for: .widget) {
-                    WidgetBackground(alter: entry.fronters.first?.alter)
+                    WidgetBackground(
+                        alter: entry.fronters.first?.alter,
+                        accentHex: entry.accentHex
+                    )
                 }
         }
         .configurationDisplayName("Alter Fronting")
-        .description("See who is fronting and add another alter with a tap.")
+        .description("See who is fronting, with full or partial fronting at a glance.")
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
     }
 }
@@ -77,10 +86,27 @@ struct AlterEgoWidgetView: View {
 
     private let addURL = URL(string: "alterego://add-fronter")!
 
+    private var accent: Color {
+        Color(hex: entry.accentHex)
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
             header
-            content
+
+            if entry.fronters.isEmpty {
+                emptyView
+            } else {
+                switch family {
+                case .systemSmall:
+                    smallView
+                case .systemLarge:
+                    largeView
+                default:
+                    mediumView
+                }
+            }
+
             Spacer(minLength: 0)
             addButton
         }
@@ -88,35 +114,30 @@ struct AlterEgoWidgetView: View {
     }
 
     private var header: some View {
-        HStack(alignment: .firstTextBaseline) {
-            Text(entry.fronters.isEmpty ? "AlterEgo" : "Fronting now")
-                .font(.caption.bold())
-                .foregroundStyle(.secondary)
+        HStack(alignment: .center, spacing: 6) {
+            VStack(alignment: .leading, spacing: 1) {
+                Text(entry.fronters.isEmpty ? "ALTER EGO" : "FRONTING NOW")
+                    .font(.system(size: 10, weight: .bold))
+                    .tracking(1.1)
+                    .foregroundStyle(.secondary)
+
+                Text(
+                    entry.fronters.isEmpty
+                    ? "\(entry.totalAlters) alters"
+                    : "\(entry.fronters.count) of \(entry.totalAlters) alters"
+                )
+                .font(.system(size: 10, weight: .medium))
+                .foregroundStyle(.tertiary)
+            }
 
             Spacer(minLength: 0)
 
             if !entry.fronters.isEmpty {
-                Text("\(entry.fronters.count)")
-                    .font(.caption2.bold())
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(.quaternary, in: Capsule())
-            }
-        }
-    }
-
-    @ViewBuilder
-    private var content: some View {
-        if entry.fronters.isEmpty {
-            emptyView
-        } else {
-            switch family {
-            case .systemSmall:
-                smallView
-            case .systemLarge:
-                largeView
-            default:
-                mediumView
+                Circle()
+                    .fill(accent)
+                    .frame(width: 8, height: 8)
+                    .shadow(color: accent.opacity(0.7), radius: 4)
+                    .widgetAccentable()
             }
         }
     }
@@ -124,35 +145,42 @@ struct AlterEgoWidgetView: View {
     private var smallView: some View {
         let first = entry.fronters[0]
 
-        return VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 8) {
-                AvatarView(alter: first.alter, size: 38)
+        return VStack(alignment: .leading, spacing: 7) {
+            HStack(spacing: 10) {
+                AvatarView(alter: first.alter, size: 46)
 
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: 3) {
                     Text(first.alter.name)
                         .font(.headline)
                         .lineLimit(1)
-                    StatusBadge(mode: first.session.mode, compact: true)
+
+                    if let role = first.alter.displayRole {
+                        Text(role)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
                 }
             }
 
+            frontingBar(first)
+
             if entry.fronters.count > 1 {
-                Text("+\(entry.fronters.count - 1) more fronting")
-                    .font(.caption2)
+                Text("+\(entry.fronters.count - 1) more")
+                    .font(.caption2.weight(.semibold))
                     .foregroundStyle(.secondary)
-                    .lineLimit(1)
             }
         }
     }
 
     private var mediumView: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 5) {
             ForEach(entry.fronters.prefix(2)) { fronter in
                 fronterRow(fronter)
             }
 
             if entry.fronters.count > 2 {
-                Text("+\(entry.fronters.count - 2) more")
+                Text("+\(entry.fronters.count - 2) more fronting")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }
@@ -160,74 +188,141 @@ struct AlterEgoWidgetView: View {
     }
 
     private var largeView: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            ForEach(entry.fronters.prefix(5)) { fronter in
-                fronterRow(fronter)
+        VStack(alignment: .leading, spacing: 6) {
+            ForEach(entry.fronters.prefix(6)) { fronter in
+                fronterRow(fronter, showsRole: true)
+
+                if fronter.id != entry.fronters.prefix(6).last?.id {
+                    Divider()
+                        .opacity(0.35)
+                }
             }
 
-            if entry.fronters.count > 5 {
-                Text("+\(entry.fronters.count - 5) more")
+            if entry.fronters.count > 6 {
+                Text("+\(entry.fronters.count - 6) more fronting")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }
         }
     }
 
-    private func fronterRow(_ fronter: Fronter) -> some View {
-        HStack(spacing: 8) {
-            AvatarView(alter: fronter.alter, size: 30)
+    private func fronterRow(_ fronter: Fronter, showsRole: Bool = false) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 8) {
+                AvatarView(alter: fronter.alter, size: 30)
 
-            Text(fronter.alter.name)
-                .font(.subheadline.weight(.semibold))
-                .lineLimit(1)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(fronter.alter.name)
+                        .font(.subheadline.weight(.semibold))
+                        .lineLimit(1)
 
-            Spacer(minLength: 0)
+                    if showsRole, let role = fronter.alter.displayRole {
+                        Text(role)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    } else {
+                        Text(fronter.session.mode.shortLabel)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                }
 
-            StatusBadge(mode: fronter.session.mode, compact: true)
+                Spacer(minLength: 0)
+
+                Image(systemName: fronter.session.mode == .full
+                      ? "person.fill.checkmark"
+                      : "person.2.fill")
+                    .font(.caption)
+                    .foregroundStyle(fronter.session.mode == .full ? accent : .orange)
+                    .widgetAccentable(fronter.session.mode == .full)
+            }
+
+            frontingBar(fronter)
         }
     }
 
+    private func frontingBar(_ fronter: Fronter) -> some View {
+        FrontingBar(
+            color: Color(hex: fronter.alter.colorHex),
+            mode: fronter.session.mode,
+            cornerRadius: 3,
+            showStripes: entry.showStripes
+        )
+        .frame(height: 4)
+    }
+
     private var emptyView: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Image(systemName: "moon.zzz.fill")
-                .font(.title3)
-                .foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 8) {
+            ZStack {
+                Circle()
+                    .fill(accent.opacity(0.16))
+                    .frame(width: 44, height: 44)
+
+                Image(systemName: "moon.zzz.fill")
+                    .font(.title3)
+                    .foregroundStyle(accent)
+                    .widgetAccentable()
+            }
 
             Text("No one is fronting")
                 .font(.subheadline.weight(.semibold))
 
-            if entry.totalAlters == 0 {
-                Text("Add alters in the app to get started.")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
+            Text(entry.totalAlters == 0
+                 ? "Add alters in the app to get started."
+                 : "Tap Add to start a new session.")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
     private var addButton: some View {
         Link(destination: addURL) {
-            Label(entry.totalAlters == 0 ? "Open AlterEgo" : "Add Fronter", systemImage: "plus")
-                .font(.caption.bold())
-                .lineLimit(1)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 7)
-                .background(Color.accentColor, in: Capsule())
-                .foregroundStyle(.white)
+            HStack(spacing: 5) {
+                Image(systemName: "plus")
+                Text(buttonTitle)
+                    .lineLimit(1)
+            }
+            .font(.caption.weight(.bold))
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 6)
+            .background(accent, in: Capsule())
+            .foregroundStyle(.white)
+            .widgetAccentable()
         }
-        .accessibilityLabel("Add another fronting alter")
+        .accessibilityLabel(entry.totalAlters == 0 ? "Open AlterEgo" : "Add a fronting alter")
+    }
+
+    private var buttonTitle: String {
+        if entry.totalAlters == 0 { return "Open AlterEgo" }
+        return entry.fronters.isEmpty ? "Start Fronting" : "Add Fronter"
     }
 }
 
 struct WidgetBackground: View {
     let alter: Alter?
+    let accentHex: String
 
     var body: some View {
-        let color = Color(hex: alter?.colorHex ?? "#6C5CE7")
-        LinearGradient(
-            colors: [color.opacity(0.38), color.opacity(0.08)],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
+        let color = Color(hex: alter?.bannerColorHex ?? alter?.colorHex ?? accentHex)
+
+        ZStack {
+            LinearGradient(
+                colors: [color.opacity(0.48), color.opacity(0.06)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+
+            RadialGradient(
+                colors: [color.opacity(0.34), .clear],
+                center: .topTrailing,
+                startRadius: 0,
+                endRadius: 170
+            )
+
+            DiagonalStripes(color: color.opacity(0.18), spacing: 16)
+                .opacity(0.35)
+        }
     }
 }
