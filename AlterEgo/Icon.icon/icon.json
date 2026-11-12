@@ -1,0 +1,65 @@
+{
+  "features" : [
+    "refractivity"
+  ],
+  "fill" : {
+    "automatic-gradient" : "display-p3:0.96783,0.91138,0.78745,1.00000"
+  },
+  "groups" : [
+    {
+      "blur-material" : null,
+      "layers" : [
+        {
+          "fill" : {
+            "linear-gradient" : [
+              "display-p3:0.24442,0.56870,1.05747,0.33000",
+              "extended-srgb:0.00000,0.53333,1.00000,0.45000"
+            ]
+          },
+          "image-name" : "&.svg",
+          "name" : "&",
+          "position" : {
+            "scale" : 3.1,
+            "translation-in-points" : [
+              18.810721202417426,
+              -0.0062114560189456824
+            ]
+          }
+        },
+        {
+          "fill" : {
+            "automatic-gradient" : "display-p3:0.96783,0.63470,0.96731,1.00000"
+          },
+          "image-name" : "House.svg",
+          "name" : "House",
+          "position" : {
+            "scale" : 2.86,
+            "translation-in-points" : [
+              5.499612256764976,
+              -3.631999999999948
+            ]
+          }
+        }
+      ],
+      "refractivity" : {
+        "depth" : 0.741796875,
+        "enabled" : true,
+        "strength" : 0.2653125
+      },
+      "shadow" : {
+        "kind" : "layer-color",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.3
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "circles" : [
+      "watchOS"
+    ],
+    "squares" : "shared"
+  }
+}

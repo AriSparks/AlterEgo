@@ -6,13 +6,71 @@
 	objectVersion = 90;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		1038E278C52B2359CD941CE9 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = C311E540894FD907E5A6B5B9 /* Models.swift */; };
+		1B20273B7129BED20BCDF66F /* AvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93E496D4A2D22E0FB2F5BDFD /* AvatarView.swift */; };
+		240EEC0F32419B80D6F01B2C /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FEF72042760A9F71F9BDAF10 /* Foundation.framework */; };
+		2F1BD740983A198691EDB2B7 /* AlterEgoWidget.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = CC90B93C7E746801D890AC5D /* AlterEgoWidget.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		381AF7A2A8C9E160525B8584 /* AlterSelectionIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = C307E4CAC1261EA24100BE56 /* AlterSelectionIntent.swift */; };
+		5AF91808844A913FF8FAE8B8 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = C311E540894FD907E5A6B5B9 /* Models.swift */; };
+		61387788747858905581A113 /* AlterEgoWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0628ACA920558C0C2860E5 /* AlterEgoWidget.swift */; };
+		D33FF6A65F1C7A51882C895F /* AlterEgoWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96BAE2EDA8FA258E8F45867F /* AlterEgoWidgetBundle.swift */; };
+		F0E2F5DC9308E62D69758BAC /* AvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93E496D4A2D22E0FB2F5BDFD /* AvatarView.swift */; };
+		FF390BCC32B6FBC5AAAAF261 /* FrontingIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6438F1DD38D28BBB6A3993D1 /* FrontingIntents.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		4026501DA7C6AEC052B7A692 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 000000000000000000000000 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = ECD0CF8B15E41442D4F149A5;
+			remoteInfo = AlterEgoWidget;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		CA0678B6D54800C76AD0039C /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = "";
+			dstSubfolder = PlugIns;
+			files = (
+				2F1BD740983A198691EDB2B7 /* AlterEgoWidget.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		000000000000000000000120 /* AlterEgo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AlterEgo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		6438F1DD38D28BBB6A3993D1 /* FrontingIntents.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FrontingIntents.swift; sourceTree = "<group>"; };
+		88B10E1730A4E1F4005744F9 /* AlterEgoWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AlterEgoWidget.entitlements; sourceTree = "<group>"; };
+		93E496D4A2D22E0FB2F5BDFD /* AvatarView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AvatarView.swift; sourceTree = "<group>"; };
+		96BAE2EDA8FA258E8F45867F /* AlterEgoWidgetBundle.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AlterEgoWidgetBundle.swift; sourceTree = "<group>"; };
+		A1C0D05C7280442F683F07B6 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		C307E4CAC1261EA24100BE56 /* AlterSelectionIntent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AlterSelectionIntent.swift; sourceTree = "<group>"; };
+		C311E540894FD907E5A6B5B9 /* Models.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		CC90B93C7E746801D890AC5D /* AlterEgoWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = AlterEgoWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		DD0628ACA920558C0C2860E5 /* AlterEgoWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AlterEgoWidget.swift; sourceTree = "<group>"; };
+		FEF72042760A9F71F9BDAF10 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		88B10E2C30A52054005744F9 /* Exceptions for "AlterEgo" folder in "AlterEgo" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 000000000000000100000000 /* AlterEgo */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		000000000000000000000010 /* AlterEgo */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				88B10E2C30A52054005744F9 /* Exceptions for "AlterEgo" folder in "AlterEgo" target */,
+			);
 			path = AlterEgo;
 			sourceTree = "<group>";
 		};
@@ -24,6 +82,12 @@
 			files = (
 			);
 		};
+		8CF51C602913913D858215A5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+				240EEC0F32419B80D6F01B2C /* Foundation.framework in Frameworks */,
+			);
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -32,6 +96,9 @@
 			children = (
 				000000000000000000000010 /* AlterEgo */,
 				000000000000000000000020 /* Products */,
+				E5F7C3B678F07CF413EF5A4D /* Frameworks */,
+				76B3E252AECC218FB85874E5 /* AlterEgoWidget */,
+				DABD87BD23A9321B576A8B7C /* Shared */,
 			);
 			sourceTree = "<group>";
 		};
@@ -39,8 +106,47 @@
 			isa = PBXGroup;
 			children = (
 				000000000000000000000120 /* AlterEgo.app */,
+				CC90B93C7E746801D890AC5D /* AlterEgoWidget.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		76B3E252AECC218FB85874E5 /* AlterEgoWidget */ = {
+			isa = PBXGroup;
+			children = (
+				88B10E1730A4E1F4005744F9 /* AlterEgoWidget.entitlements */,
+				96BAE2EDA8FA258E8F45867F /* AlterEgoWidgetBundle.swift */,
+				DD0628ACA920558C0C2860E5 /* AlterEgoWidget.swift */,
+				C307E4CAC1261EA24100BE56 /* AlterSelectionIntent.swift */,
+				6438F1DD38D28BBB6A3993D1 /* FrontingIntents.swift */,
+				A1C0D05C7280442F683F07B6 /* Info.plist */,
+			);
+			path = AlterEgoWidget;
+			sourceTree = "<group>";
+		};
+		DABD87BD23A9321B576A8B7C /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				C311E540894FD907E5A6B5B9 /* Models.swift */,
+				93E496D4A2D22E0FB2F5BDFD /* AvatarView.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		E5F7C3B678F07CF413EF5A4D /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				EDDC9C0BF69C745E63FB43C6 /* iOS */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		EDDC9C0BF69C745E63FB43C6 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				FEF72042760A9F71F9BDAF10 /* Foundation.framework */,
+			);
+			name = iOS;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -53,8 +159,12 @@
 				000000000000000120000000 /* Sources */,
 				000000000000000130000000 /* Frameworks */,
 				000000000000000140000000 /* Resources */,
+				CA0678B6D54800C76AD0039C /* Embed App Extensions */,
 			);
 			buildRules = (
+			);
+			dependencies = (
+				10DC1FD8C06B8D740B4E638D /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				000000000000000000000010 /* AlterEgo */,
@@ -63,6 +173,21 @@
 			productName = MyApp;
 			productReference = 000000000000000000000120 /* AlterEgo.app */;
 			productType = "com.apple.product-type.application";
+		};
+		ECD0CF8B15E41442D4F149A5 /* AlterEgoWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 57D0362C22104E4B3ADAEE8C /* Build configuration list for PBXNativeTarget "AlterEgoWidget" */;
+			buildPhases = (
+				2D4093720BC66B00DF5639E5 /* Sources */,
+				8CF51C602913913D858215A5 /* Frameworks */,
+				1EBF121110B7F3B0062CC10A /* Resources */,
+			);
+			buildRules = (
+			);
+			name = AlterEgoWidget;
+			productName = AlterEgoWidget;
+			productReference = CC90B93C7E746801D890AC5D /* AlterEgoWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -76,6 +201,10 @@
 				TargetAttributes = {
 					000000000000000100000000 = {
 						CreatedOnToolsVersion = 26.3;
+					};
+					ECD0CF8B15E41442D4F149A5 = {
+						CreatedOnToolsVersion = 27.0;
+						ProvisioningStyle = Automatic;
 					};
 				};
 			};
@@ -94,6 +223,7 @@
 			projectRoot = "";
 			targets = (
 				000000000000000100000000 /* AlterEgo */,
+				ECD0CF8B15E41442D4F149A5 /* AlterEgoWidget */,
 			);
 		};
 /* End PBXProject section */
@@ -104,15 +234,42 @@
 			files = (
 			);
 		};
+		1EBF121110B7F3B0062CC10A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		000000000000000120000000 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
+				5AF91808844A913FF8FAE8B8 /* Models.swift in Sources */,
+				1B20273B7129BED20BCDF66F /* AvatarView.swift in Sources */,
+			);
+		};
+		2D4093720BC66B00DF5639E5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+				D33FF6A65F1C7A51882C895F /* AlterEgoWidgetBundle.swift in Sources */,
+				61387788747858905581A113 /* AlterEgoWidget.swift in Sources */,
+				381AF7A2A8C9E160525B8584 /* AlterSelectionIntent.swift in Sources */,
+				FF390BCC32B6FBC5AAAAF261 /* FrontingIntents.swift in Sources */,
+				1038E278C52B2359CD941CE9 /* Models.swift in Sources */,
+				F0E2F5DC9308E62D69758BAC /* AvatarView.swift in Sources */,
 			);
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		10DC1FD8C06B8D740B4E638D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = AlterEgoWidget;
+			target = ECD0CF8B15E41442D4F149A5 /* AlterEgoWidget */;
+			targetProxy = 4026501DA7C6AEC052B7A692 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		000000000000000011000000 /* Debug configuration for PBXProject "AlterEgo" */ = {
@@ -250,6 +407,9 @@
 		000000000000000111000000 /* Debug configuration for PBXNativeTarget "AlterEgo" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = Icon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				CODE_SIGN_ENTITLEMENTS = AlterEgo/AlterEgo.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = PRRZVX93C3;
@@ -257,6 +417,9 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = AlterEgo/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Alter Ego";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.medical";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -270,24 +433,27 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "devplaceholder.$(PROJECT_UNIQUE_VALUE:identifier).$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_BUNDLE_IDENTIFIER = gay.arisparks.AlterEgo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
 		000000000000000112000000 /* Release configuration for PBXNativeTarget "AlterEgo" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = Icon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				CODE_SIGN_ENTITLEMENTS = AlterEgo/AlterEgo.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = PRRZVX93C3;
@@ -295,6 +461,9 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = AlterEgo/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Alter Ego";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.medical";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -308,20 +477,103 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "devplaceholder.$(PROJECT_UNIQUE_VALUE:identifier).$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_BUNDLE_IDENTIFIER = gay.arisparks.AlterEgo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
+		};
+		124F35DF322C6F81B2CC6B80 /* Release configuration for PBXNativeTarget "AlterEgoWidget" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = AlterEgoWidget/AlterEgoWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = PRRZVX93C3;
+				ENABLE_APP_SANDBOX = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = AlterEgoWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 27.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = gay.arisparks.AlterEgo.Widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = auto;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		B2C23C1A4D610116E09812EF /* Debug configuration for PBXNativeTarget "AlterEgoWidget" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = AlterEgoWidget/AlterEgoWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = PRRZVX93C3;
+				ENABLE_APP_SANDBOX = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = AlterEgoWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 27.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = gay.arisparks.AlterEgo.Widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = auto;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
 		};
 /* End XCBuildConfiguration section */
 
@@ -339,6 +591,14 @@
 			buildConfigurations = (
 				000000000000000111000000 /* Debug configuration for PBXNativeTarget "AlterEgo" */,
 				000000000000000112000000 /* Release configuration for PBXNativeTarget "AlterEgo" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		57D0362C22104E4B3ADAEE8C /* Build configuration list for PBXNativeTarget "AlterEgoWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				124F35DF322C6F81B2CC6B80 /* Release configuration for PBXNativeTarget "AlterEgoWidget" */,
+				B2C23C1A4D610116E09812EF /* Debug configuration for PBXNativeTarget "AlterEgoWidget" */,
 			);
 			defaultConfigurationName = Release;
 		};
